@@ -117,9 +117,9 @@ function SceneContent({
       {/* Post-processing effects - enhanced glow */}
       <EffectComposer>
         <Bloom 
-          luminanceThreshold={0.1}
-          luminanceSmoothing={0.5}
-          intensity={2.5}
+          luminanceThreshold={0.4}
+          luminanceSmoothing={0.3}
+          intensity={1.2}
           mipmapBlur
         />
         <Vignette
