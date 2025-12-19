@@ -36,19 +36,55 @@ function CameraController({
   const prevStateRef = useRef<TreeState>(state);
   const transitionDelayRef = useRef(0);
   const isAtStarRef = useRef(false);
+  const hasInitializedRef = useRef(false);
   
   // Physics-based smooth rotation
   const velocityRef = useRef(0);
   const targetVelocityRef = useRef(0.15); // Target rotation speed
 
+  // Find nearest ribbon position based on camera position
+  const findNearestRibbonT = (cameraPos: THREE.Vector3): number => {
+    const height = 7;
+    const maxRadius = 3.0;
+    let nearestT = 0;
+    let minDistance = Infinity;
+    
+    // Sample points along the ribbon to find nearest
+    for (let t = 0; t <= 1; t += 0.02) {
+      const ribbonY = t * height - height / 2 + 0.3;
+      const layerRadius = maxRadius * (1 - t * 0.88) + 0.15;
+      const angle = t * Math.PI * 6;
+      
+      const ribbonX = Math.cos(angle) * layerRadius;
+      const ribbonZ = Math.sin(angle) * layerRadius;
+      
+      const distance = Math.sqrt(
+        Math.pow(cameraPos.x - ribbonX, 2) +
+        Math.pow(cameraPos.y - ribbonY, 2) +
+        Math.pow(cameraPos.z - ribbonZ, 2)
+      );
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestT = t;
+      }
+    }
+    
+    return nearestT;
+  };
+
   useFrame((_, delta) => {
     // Detect state change to tree (pinch gesture completed)
     if (state === 'tree' && prevStateRef.current !== 'tree') {
+      // Find nearest ribbon position based on current camera location
+      const nearestT = findNearestRibbonT(camera.position);
+      
       // Wait for tree to assemble before starting ribbon follow
       transitionDelayRef.current = 2.0; // 2 second delay for assembly
-      ribbonTimeRef.current = 0;
+      ribbonTimeRef.current = nearestT; // Start from nearest position
       isAtStarRef.current = false;
-      velocityRef.current = 0; // Reset velocity for smooth start
+      velocityRef.current = 0.05; // Start with small velocity for smooth transition
+      hasInitializedRef.current = true;
       onStarFocused?.(false);
     }
     
@@ -252,6 +288,7 @@ interface ChristmasSceneProps {
   orbitRotation: { x: number; y: number };
   handPosition: { x: number; y: number } | null;
   onReady?: () => void;
+  onStarFocusChange?: (focused: boolean) => void;
 }
 
 export function ChristmasScene({ 
@@ -261,6 +298,7 @@ export function ChristmasScene({
   orbitRotation,
   handPosition,
   onReady,
+  onStarFocusChange,
 }: ChristmasSceneProps) {
   // Call onReady after mount
   useEffect(() => {
@@ -291,6 +329,7 @@ export function ChristmasScene({
         focusedPhotoIndex={focusedPhotoIndex}
         orbitRotation={orbitRotation}
         handPosition={handPosition}
+        onStarFocusChange={onStarFocusChange}
       />
     </Canvas>
   );

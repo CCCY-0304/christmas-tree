@@ -5,6 +5,7 @@ import { PhotoUpload } from '@/components/christmas/PhotoUpload';
 import { InstructionsOverlay } from '@/components/christmas/InstructionsOverlay';
 import { CameraDebug } from '@/components/christmas/CameraDebug';
 import { LoadingScreen } from '@/components/christmas/LoadingScreen';
+import { CustomTextOverlay } from '@/components/christmas/CustomTextOverlay';
 import { useHandGesture } from '@/hooks/useHandGesture';
 import { useMouseFallback } from '@/hooks/useMouseFallback';
 import { useChristmasAudio } from '@/hooks/useChristmasAudio';
@@ -23,6 +24,8 @@ const Index = () => {
   const [orbitRotation, setOrbitRotation] = useState({ x: 0, y: 0 });
   const [cameraPermission, setCameraPermission] = useState<'prompt' | 'granted' | 'denied' | 'requesting'>('prompt');
   const [showInstructions, setShowInstructions] = useState(true);
+  const [customText, setCustomText] = useState('🎄 Merry Christmas 🎄');
+  const [isStarFocused, setIsStarFocused] = useState(false);
   
   // Use refs for values accessed in callbacks to prevent re-renders
   const treeStateRef = useRef(treeState);
@@ -152,6 +155,7 @@ const Index = () => {
           orbitRotation={orbitRotation}
           handPosition={handGesture.isTracking ? handGesture.handPosition : null}
           onReady={handleSceneReady}
+          onStarFocusChange={setIsStarFocused}
         />
       </Suspense>
 
@@ -204,6 +208,13 @@ const Index = () => {
               <Github className="w-5 h-5" />
             </a>
           </div>
+
+          {/* Custom text overlay and edit button */}
+          <CustomTextOverlay
+            isVisible={isStarFocused}
+            text={customText}
+            onTextChange={setCustomText}
+          />
         </>
       )}
     </div>
